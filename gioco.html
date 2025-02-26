@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gioco Strategico Futuristico</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #111; color: #fff; text-align: center; }
+        .container { max-width: 600px; margin: auto; padding: 20px; background: #222; border-radius: 10px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Città Distopica - Strategia</h1>
+        <div id="setup">
+            <h3>Seleziona il numero di squadre:</h3>
+            <button onclick="startGame(2)">2 Squadre</button>
+            <button onclick="startGame(3)">3 Squadre</button>
+        </div>
+        
+        <div id="game" class="hidden">
+            <h3>Turno <span id="turno">1</span></h3>
+            <p>Budget Squadra: <span id="budget">500</span>M</p>
+            <button onclick="generateEvent()">Subisci Evento</button>
+            <p id="evento"></p>
+            <button onclick="nextTurn()">Prossimo Turno</button>
+        </div>
+    </div>
+
+    <script>
+        let turno = 1;
+        let budget = 500;
+        let events = [
+            { name: "Cyber-Attacco", effect: -50 },
+            { name: "Investitori Esteri", effect: +100 },
+            { name: "Nuova Tassa Corporativa", effect: -40 }
+        ];
+
+        function startGame(squadre) {
+            $("#setup").hide();
+            $("#game").show();
+            alert("Hai scelto " + squadre + " squadre! Il gioco ha inizio.");
+        }
+
+        function generateEvent() {
+            let evento = events[Math.floor(Math.random() * events.length)];
+            $("#evento").text("Evento: " + evento.name + " (Effetto: " + evento.effect + "M)");
+            budget += evento.effect;
+            $("#budget").text(budget);
+        }
+
+        function nextTurn() {
+            turno++;
+            $("#turno").text(turno);
+        }
+    </script>
+</body>
+</html>
