@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Nerd </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h3 {
+            text-align: center;
+            color: #4a90e2;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 10px;
+        }
+        .options input {
+            margin-right: 10px;
+        }
+        .btn {
+            display: inline-block;
+            width: 48%;
+            padding: 10px;
+            background-color: #4a90e2;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #357ab8;
+        }
+        .result {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+.category {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    color: #fff;
+}
+
+.category.serieTV { background-color: #4a90e2; } /* Blu */
+.category.musica { background-color: #e94e77; } /* Rosa */
+.category.videogiochi { background-color: #f39c12; } /* Arancione */
+.category.cinema { background-color: #27ae60; } /* Verde */
+.category.attualita { background-color: #8e44ad; } /* Viola */
+.category.logica { background-color: #c0392b; } /* Rosso */
+
+.category.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    color: #666;
+}
+        .timer {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sei più NERD o genio incompreso? </h1>
+        <div id="category-selection">
+            <h3>Seleziona una categoria:</h3>
+          <div class="category serieTV" onclick="selectCategory('serieTV')">Serie TV</div>
+					<div class="category musica" onclick="selectCategory('musica')">Musica</div>
+					<div class="category videogiochi" onclick="selectCategory('videogiochi')">Videogiochi</div>
+					<div class="category cinema" onclick="selectCategory('cinema')">Cinema</div>
+					<div class="category attualita" onclick="selectCategory('attualita')">Attualità</div>
+					<div class="category logica" onclick="selectCategory('logica')">Logica</div>
+        </div>
+        <div id="quiz" class="fade show" style="display: none;">
+            <!-- Le domande verranno caricate qui -->
+        </div>
+        <div style="text-align: center;">
+            <button type="button" class="btn" onclick="previousQuestion()" style="display: none;">Indietro</button>
+            <button type="button" class="btn" onclick="nextQuestion()" style="display: none;">Avanti</button>
+        </div>
+        <div class="result" id="result"></div>
+        <div class="incorrect-questions" id="incorrect-questions"></div>
+        <div class="timer" id="timer">Tempo rimanente: 20:00</div>
+    </div>
+
+    <script>
+        const categories = {
+            serieTV: [
+								{ question: "Qual è il nome del barista nei Simpson?", options: ["Moe Szyslak", "Barney Gumble", "Apu Nahasapeemapetilon", "Carl Carlson", "Lenny Leonard"], answer: 0 },
+								{ question: "Qual è il nome del cane dei Simpson?", options: ["Piccolo aiutante di Babbo Natale", "Palla di neve", "Blinky", "Lassie", "Rex"], answer: 0 },
+								{ question: "Chi è il fondatore di Springfield?", options: ["Jebediah Springfield", "Hans Moleman", "Lionel Hutz", "Montgomery Burns", "Waylon Smithers"], answer: 0 },
+								{ question: "Qual è il nome del direttore della scuola elementare di Springfield?", options: ["Seymour Skinner", "Edna Krabappel", "Otto Mann", "Nelson Muntz", "Ralph Wiggum"], answer: 0 },
+								{ question: "Qual è il nome del supermercato di Apu?", options: ["Jet Market", "Kwik-E-Mart", "Quick Stop", "Super Apu", "Springfield Market"], answer: 1 },
+								{ question: "Quale serie TV segue le avventure di un gruppo di scienziati nerd?", options: ["The Big Bang Theory", "Silicon Valley", "Futurama", "Rick and Morty", "Community"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un ufficio di carta?", options: ["The Office", "Parks and Recreation", "Brooklyn Nine-Nine", "Scrubs", "30 Rock"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di amici a New York?", options: ["Friends", "How I Met Your Mother", "Seinfeld", "Gossip Girl", "The Nanny"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un uomo che si risveglia dopo un coma in un mondo infestato da zombie?", options: ["The Walking Dead", "Fear the Walking Dead", "Z Nation", "iZombie", "Black Summer"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di adolescenti negli anni '90?", options: ["Freaks and Geeks", "That '70s Show", "Stranger Things", "Dawson's Creek", "Beverly Hills, 90210"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un parco di divertimenti futuristico?", options: ["Westworld", "Black Mirror", "Altered Carbon", "The 100", "Lost"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di detenuti in un carcere maschile?", options: ["Oz", "Prison Break", "Orange Is the New Black", "Wentworth", "The Night Of"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un avvocato che diventa insegnante di chimica?", options: ["Breaking Bad", "Better Call Saul", "Suits", "Boston Legal", "The Practice"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un mondo medievale fantastico?", options: ["Game of Thrones", "The Witcher", "Merlin", "Vikings", "The Last Kingdom"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di supereroi disfunzionali?", options: ["The Umbrella Academy", "The Boys", "Titans", "Doom Patrol", "Watchmen"], answer: 0 },
+								// Nuove domande Serie TV
+								{ question: "Quale serie TV ha come protagonista un gruppo di donne che lavorano in un'agenzia pubblicitaria negli anni '60?", options: ["Mad Men", "The Marvelous Mrs. Maisel", "The Bold Type", "The Hour", "Good Girls Revolt"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di detenuti che cercano di evadere da un carcere di massima sicurezza?", options: ["Prison Break", "Oz", "Orange Is the New Black", "Wentworth", "The Night Of"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un mondo in cui le persone possono viaggiare nel tempo?", options: ["Dark", "Travelers", "Timeless", "Doctor Who", "Continuum"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di vampiri che vivono in una comunità segreta?", options: ["True Blood", "The Vampire Diaries", "Buffy the Vampire Slayer", "Being Human", "The Originals"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un gruppo di ragazzi che scoprono di avere poteri soprannaturali?", options: ["Misfits", "Heroes", "The Gifted", "The Umbrella Academy", "Legacies"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di medici in un ospedale di Seattle?", options: ["Grey's Anatomy", "The Good Doctor", "ER", "House", "Chicago Med"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un mondo in cui i supereroi sono una realtà?", options: ["The Boys", "Watchmen", "Titans", "Doom Patrol", "Jessica Jones"], answer: 0 },
+								{ question: "Quale serie Marvel segue le vicende di un avvocato cieco che combatte il crimine a Hell's Kitchen?", options: ["Daredevil", "Jessica Jones", "Luke Cage", "Iron Fist", "The Punisher"], answer: 0 },                                                 
+								{ question: "Quale serie Marvel ha come protagonista una detective privata con superpoteri?", options: ["Jessica Jones", "Daredevil", "Luke Cage", "Iron Fist", "The Defenders"], answer: 0 },                                                                    { question: "Quale serie TV segue le vicende di un gruppo di agenti dell'FBI che indagano su casi paranormali?", options: ["The X-Files", "Fringe", "Mindhunter", "Criminal Minds", "Twin Peaks"], answer: 0 },
+								{ question: "Quale serie Marvel segue le vicende di un ex marine che cerca vendetta per la morte della sua famiglia?", options: ["The Punisher", "Daredevil", "Jessica Jones", "Luke Cage", "Iron Fist"], answer: 0 },                                            { question: "Quale serie TV segue le vicende di un gruppo di sopravvissuti in un bunker sotterraneo?", options: ["The 100", "Under the Dome", "The Last Ship", "Colony", "The Rain"], answer: 0 },
+								{ question: "Quale serie Marvel è ambientata ad Harlem e segue le vicende di un uomo con la pelle indistruttibile?", options: ["Luke Cage", "Jessica Jones", "Daredevil", "Iron Fist", "The Defenders"], answer: 0 },                                             { question: "Quale serie TV ha come protagonista un gruppo di ragazzi che giocano a Dungeons & Dragons?", options: ["Stranger Things", "The Big Bang Theory", "Freaks and Geeks", "Community", "Parks and Recreation"], answer: 0 },
+								{ question: "Quale serie Marvel segue le vicende di un miliardario esperto di arti marziali che ritorna a New York dopo anni di assenza?", options: ["Iron Fist", "Daredevil", "Jessica Jones", "Luke Cage", "The Defenders"], answer: 0 },                       { question: "Quale serie TV ha come protagonista un detective con disturbo ossessivo-compulsivo?", options: ["Monk", "Sherlock", "True Detective", "Luther", "The Mentalist"], answer: 0 },
+								{ question: "Quale serie Marvel riunisce Daredevil, Jessica Jones, Luke Cage e Iron Fist per combattere una minaccia comune?", options: ["The Defenders", "The Avengers", "Agents of S.H.I.E.L.D.", "Runaways", "Cloak & Dagger"], answer: 0 },                   { question: "Quale serie TV segue le vicende di un gruppo di pubblicitari negli anni '60?", options: ["Mad Men", "The Crown", "Boardwalk Empire", "The Americans", "The Man in the High Castle"], answer: 0 },
+								{ question: "Quale serie Marvel segue le vicende di un gruppo di adolescenti che scoprono che i loro genitori sono membri di un'organizzazione criminale?", options: ["Runaways", "Cloak & Dagger", "The Defenders", "The Gifted", "Legion"], answer: 0 },        { question: "Quale serie TV è ambientata in un mondo post-apocalittico con zombie?", options: ["The Walking Dead", "Black Summer", "Z Nation", "The Rain", "Daybreak"], answer: 0 },
+								{ question: "Quale serie Marvel segue le vicende di due giovani con poteri complementari che formano un legame speciale?", options: ["Cloak & Dagger", "Runaways", "The Defenders", "The Gifted", "Legion"], answer: 0 },                                         { question: "Quale serie TV segue le vicende di un gruppo di detenuti in un carcere femminile?", options: ["Orange Is the New Black", "Wentworth", "Prison Break", "The Night Of", "Oz"], answer: 0 },
+								{ question: "Quale serie Marvel segue le vicende di agenti che lavorano per un'organizzazione segreta che protegge il mondo da minacce sovrumane?", options: ["Agents of S.H.I.E.L.D.", "The Defenders", "Runaways", "Cloak & Dagger", "The Gifted"], answer: 0 },{ question: "Quale serie TV ha come protagonista un hacker che combatte una corporazione malvagia?", options: ["Mr. Robot", "Silicon Valley", "Halt and Catch Fire", "The IT Crowd", "Black Mirror"], answer: 0 },
+								{ question: "Quale serie Marvel è ambientata in un universo alternativo e segue le vicende di un mutante con poteri mentali straordinari?", options: ["Legion", "The Gifted", "Runaways", "Cloak & Dagger", "The Defenders"], answer: 0 },                        { question: "Quale serie TV segue le vicende di una famiglia reale britannica?", options: ["The Crown", "Victoria", "The Tudors", "Reign", "The White Queen"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di ladri che rapinano la Zecca di Stato spagnola?", options: ["La Casa di Carta", "Breaking Bad", "Narcos", "El Chapo", "Queen of the South"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un insegnante di chimica diventato produttore di metanfetamine?", options: ["Breaking Bad", "The Wire", "Mad Men", "Better Call Saul", "Narcos"], answer: 0 },
+								{ question: "Quale serie TV è basata sui libri di George R.R. Martin?", options: ["Game of Thrones", "The Witcher", "Shadow and Bone", "His Dark Materials", "The Expanse"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di sopravvissuti su un'isola deserta?", options: ["Lost", "Survivor", "Gilligan's Island", "The Wilds", "The I-Land"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un gruppo di vampiri che vivono a New York?", options: ["What We Do in the Shadows", "True Blood", "The Vampire Diaries", "Buffy the Vampire Slayer", "Being Human"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di supereroi che lavorano per un'agenzia governativa?", options: ["Agents of S.H.I.E.L.D.", "The Umbrella Academy", "The Boys", "Titans", "Doom Patrol"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un mondo in cui le persone possono trasferire la loro coscienza in nuovi corpi?", options: ["Altered Carbon", "Black Mirror", "Westworld", "The 100", "The Expanse"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di adolescenti che scoprono di avere poteri magici?", options: ["The Magicians", "Charmed", "The Secret Circle", "The Order", "Sabrina"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un gruppo di ragazzi che si ritrovano in un mondo parallelo?", options: ["The OA", "Stranger Things", "Dark", "The Society", "The Rain"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di astronauti in missione su Marte?", options: ["Away", "The Expanse", "Mars", "Lost in Space", "The First"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un mondo in cui i robot hanno preso il controllo?", options: ["Westworld", "Black Mirror", "Humans", "The 100", "The Expanse"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di ragazzi che cercano di sopravvivere in un mondo post-apocalittico?", options: ["The 100", "The Walking Dead", "The Rain", "Daybreak", "The Society"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un gruppo di ragazzi che si ritrovano in un mondo parallelo?", options: ["The OA", "Stranger Things", "Dark", "The Society", "The Rain"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di astronauti in missione su Marte?", options: ["Away", "The Expanse", "Mars", "Lost in Space", "The First"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un mondo in cui i robot hanno preso il controllo?", options: ["Westworld", "Black Mirror", "Humans", "The 100", "The Expanse"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di ragazzi che cercano di sopravvivere in un mondo post-apocalittico?", options: ["The 100", "The Walking Dead", "The Rain", "Daybreak", "The Society"], answer: 0 },
+								{ question: "Quale serie TV ha come protagonista un gruppo di ragazzi che si ritrovano in un mondo parallelo?", options: ["The OA", "Stranger Things", "Dark", "The Society", "The Rain"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di astronauti in missione su Marte?", options: ["Away", "The Expanse", "Mars", "Lost in Space", "The First"], answer: 0 },
+								{ question: "Quale serie TV è ambientata in un mondo in cui i robot hanno preso il controllo?", options: ["Westworld", "Black Mirror", "Humans", "The 100", "The Expanse"], answer: 0 },
+								{ question: "Quale serie TV segue le vicende di un gruppo di ragazzi che cercano di sopravvivere in un mondo post-apocalittico?", options: ["The 100", "The Walking Dead", "The Rain", "Daybreak", "The Society"], answer: 0 }
+            ],
+            musica: [
+								{ question: "Chi ha cantato 'Like a Prayer' nel 1989?", options: ["Madonna", "Whitney Houston", "Cyndi Lauper", "Janet Jackson", "Paula Abdul"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'Nevermind' nel 1991?", options: ["Nirvana", "Pearl Jam", "Soundgarden", "Alice in Chains", "Stone Temple Pilots"], answer: 0 },
+								{ question: "Chi ha cantato 'I Will Always Love You' nel 1992?", options: ["Whitney Houston", "Mariah Carey", "Celine Dion", "Toni Braxton", "Barbra Streisand"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album 'Thriller' nel 1982?", options: ["Michael Jackson", "Prince", "David Bowie", "Bruce Springsteen", "Phil Collins"], answer: 0 },
+								{ question: "Chi ha cantato 'Vogue' nel 1990?", options: ["Madonna", "Janet Jackson", "Paula Abdul", "Kylie Minogue", "Gloria Estefan"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'The Joshua Tree' nel 1987?", options: ["U2", "The Police", "Queen", "Genesis", "Dire Straits"], answer: 0 },
+								{ question: "Chi ha cantato 'Wannabe' nel 1996?", options: ["Spice Girls", "Destiny's Child", "All Saints", "TLC", "B*Witched"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album 'Purple Rain' nel 1984?", options: ["Prince", "Michael Jackson", "Bruce Springsteen", "Stevie Wonder", "Lionel Richie"], answer: 0 },
+								{ question: "Chi ha cantato 'Losing My Religion' nel 1991?", options: ["R.E.M.", "Radiohead", "Oasis", "The Cranberries", "Blur"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'Appetite for Destruction' nel 1987?", options: ["Guns N' Roses", "Metallica", "Bon Jovi", "Aerosmith", "Def Leppard"], answer: 0 },
+								// Nuove domande Musica
+								{ question: "Chi ha cantato '...Baby One More Time' nel 1998?", options: ["Britney Spears", "Christina Aguilera", "Jessica Simpson", "Mandy Moore", "Jennifer Lopez"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'OK Computer' nel 1997?", options: ["Radiohead", "Coldplay", "Blur", "Oasis", "The Verve"], answer: 0 },
+								{ question: "Chi ha cantato 'My Heart Will Go On' nel 1997?", options: ["Celine Dion", "Whitney Houston", "Mariah Carey", "Shania Twain", "Faith Hill"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album 'The Marshall Mathers LP' nel 2000?", options: ["Eminem", "Dr. Dre", "Snoop Dogg", "Jay-Z", "Nas"], answer: 0 },
+								{ question: "Chi ha cantato 'Toxic' nel 2003?", options: ["Britney Spears", "Christina Aguilera", "Jessica Simpson", "Kylie Minogue", "Madonna"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'Californication' nel 1999?", options: ["Red Hot Chili Peppers", "Green Day", "Nirvana", "Pearl Jam", "Foo Fighters"], answer: 0 },
+								{ question: "Chi ha cantato 'Rolling in the Deep' nel 2010?", options: ["Adele", "Beyoncé", "Rihanna", "Lady Gaga", "Katy Perry"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album 'Confessions' nel 2004?", options: ["Usher", "Justin Timberlake", "Beyoncé", "Alicia Keys", "R. Kelly"], answer: 0 },
+								{ question: "Chi ha cantato 'Umbrella' nel 2007?", options: ["Rihanna", "Beyoncé", "Katy Perry", "Lady Gaga", "Shakira"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'Hybrid Theory' nel 2000?", options: ["Linkin Park", "Korn", "Limp Bizkit", "Papa Roach", "System of a Down"], answer: 0 },
+								{ question: "Chi ha cantato 'Poker Face' nel 2008?", options: ["Lady Gaga", "Katy Perry", "Rihanna", "Beyoncé", "Kesha"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album 'FutureSex/LoveSounds' nel 2006?", options: ["Justin Timberlake", "Usher", "Chris Brown", "Ne-Yo", "Robin Thicke"], answer: 0 },
+								{ question: "Chi ha cantato 'Oops!... I Did It Again' nel 2000?", options: ["Britney Spears", "Christina Aguilera", "Jessica Simpson", "Mandy Moore", "Jennifer Lopez"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'American Idiot' nel 2004?", options: ["Green Day", "Blink-182", "Sum 41", "The Offspring", "Fall Out Boy"], answer: 0 },
+								{ question: "Chi ha cantato 'Hips Don't Lie' nel 2006?", options: ["Shakira", "Jennifer Lopez", "Rihanna", "Beyoncé", "Nelly Furtado"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album 'Fearless' nel 2008?", options: ["Taylor Swift", "Carrie Underwood", "Kelly Clarkson", "Miley Cyrus", "Demi Lovato"], answer: 0 },
+								{ question: "Chi ha cantato 'Hotline Bling' nel 2015?", options: ["Drake", "Kanye West", "Lil Wayne", "Chris Brown", "The Weeknd"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'Parachutes' nel 2000?", options: ["Coldplay", "Radiohead", "U2", "Oasis", "The Verve"], answer: 0 },
+								{ question: "Chi ha cantato 'Single Ladies (Put a Ring on It)' nel 2008?", options: ["Beyoncé", "Rihanna", "Katy Perry", "Lady Gaga", "Alicia Keys"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album '21' nel 2011?", options: ["Adele", "Taylor Swift", "Katy Perry", "Rihanna", "Beyoncé"], answer: 0 },
+								{ question: "Chi ha cantato 'Shape of You' nel 2017?", options: ["Ed Sheeran", "Justin Bieber", "Shawn Mendes", "Bruno Mars", "Sam Smith"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'A Rush of Blood to the Head' nel 2002?", options: ["Coldplay", "Radiohead", "U2", "Oasis", "The Verve"], answer: 0 },
+								{ question: "Chi ha cantato 'Firework' nel 2010?", options: ["Katy Perry", "Rihanna", "Lady Gaga", "Beyoncé", "Adele"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album 'The Fame' nel 2008?", options: ["Lady Gaga", "Katy Perry", "Rihanna", "Beyoncé", "Adele"], answer: 0 },
+								{ question: "Chi ha cantato 'Sorry' nel 2015?", options: ["Justin Bieber", "Drake", "The Weeknd", "Chris Brown", "Shawn Mendes"], answer: 0 },
+								{ question: "Quale band ha pubblicato l'album 'Viva la Vida or Death and All His Friends' nel 2008?", options: ["Coldplay", "Radiohead", "U2", "Oasis", "The Verve"], answer: 0 },
+								{ question: "Chi ha cantato 'Rolling in the Deep' nel 2010?", options: ["Adele", "Beyoncé", "Rihanna", "Lady Gaga", "Katy Perry"], answer: 0 },
+								{ question: "Quale artista ha pubblicato l'album '1989' nel 2014?", options: ["Taylor Swift", "Katy Perry", "Rihanna", "Beyoncé", "Adele"], answer: 0 },
+								{ question: "Chi ha cantato 'Despacito' nel 2017?", options: ["Luis Fonsi", "Daddy Yankee", "Justin Bieber", "J Balvin", "Maluma"], answer: 0 }
+            ],
+            videogiochi: [
+								{ question: "Quale videogioco ha come protagonista un idraulico italiano?", options: ["Super Mario Bros.", "Sonic the Hedgehog", "Donkey Kong", "Pac-Man", "Mega Man"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in una città chiamata Vice City?", options: ["Grand Theft Auto: Vice City", "Mafia", "Saints Row", "L.A. Noire", "Watch Dogs"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un cacciatore di tesori di nome Nathan Drake?", options: ["Uncharted", "Tomb Raider", "Assassin's Creed", "Far Cry", "The Last of Us"], answer: 0 },
+								{ question: "Quale videogioco è noto per la frase 'Finish Him!'?", options: ["Mortal Kombat", "Street Fighter", "Tekken", "Soulcalibur", "Dead or Alive"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un cavaliere in un mondo oscuro e pericoloso?", options: ["Dark Souls", "The Witcher", "Elden Ring", "Bloodborne", "Demon's Souls"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in un mondo post-apocalittico con zombie?", options: ["The Last of Us", "Resident Evil", "Dying Light", "Days Gone", "State of Decay"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un assassino in un mondo aperto?", options: ["Assassin's Creed", "Hitman", "Dishonored", "Thief", "Splinter Cell"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in una scuola di magia?", options: ["Harry Potter: Hogwarts Mystery", "Bully", "Persona 5", "Fire Emblem", "Final Fantasy"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un eroe in una terra chiamata Hyrule?", options: ["The Legend of Zelda", "Final Fantasy", "Dragon Quest", "Chrono Trigger", "Secret of Mana"], answer: 0 },
+								{ question: "Quale videogioco è noto per il suo mondo cubico e la possibilità di costruire liberamente?", options: ["Minecraft", "Terraria", "Roblox", "Fortnite", "Rust"], answer: 0 },
+								// Nuove domande Videogiochi
+								{ question: "Quale videogioco è ambientato in una città infestata da creature mutanti chiamata Raccoon City?", options: ["Resident Evil", "Silent Hill", "The Evil Within", "Dead Space", "Left 4 Dead"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un ragazzo che cerca di salvare la sua sorellina da un mondo oscuro?", options: ["Limbo", "Inside", "Little Nightmares", "Hollow Knight", "Ori and the Blind Forest"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in una galassia lontana lontana?", options: ["Star Wars: Knights of the Old Republic", "Mass Effect", "Halo", "Destiny", "No Man's Sky"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un gruppo di sopravvissuti in un mondo post-apocalittico?", options: ["The Walking Dead", "The Last of Us", "Days Gone", "Dying Light", "State of Decay"], answer: 0 },
+								{ question: "Quale videogioco è noto per la sua modalità battle royale?", options: ["Fortnite", "PUBG", "Apex Legends", "Call of Duty: Warzone", "Battlefield"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un cacciatore di mostri in un mondo fantastico?", options: ["The Witcher", "Monster Hunter", "Dark Souls", "Bloodborne", "Dragon Age"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in una città futuristica chiamata Night City?", options: ["Cyberpunk 2077", "Deus Ex", "Watch Dogs", "Mirror's Edge", "System Shock"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un cavaliere che deve salvare una principessa?", options: ["The Legend of Zelda", "Super Mario Bros.", "Castlevania", "Metroid", "Shovel Knight"], answer: 0 },
+								{ question: "Quale videogioco è noto per la sua grafica pixel art e la sua difficoltà elevata?", options: ["Celeste", "Hollow Knight", "Cuphead", "Dead Cells", "Enter the Gungeon"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un gruppo di eroi che combattono contro un'orda di demoni?", options: ["Diablo", "Dark Souls", "Bloodborne", "Path of Exile", "Torchlight"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in un mondo aperto post-apocalittico con robot giganti?", options: ["Horizon Zero Dawn", "Fallout", "The Last of Us", "Metro Exodus", "Mad Max"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un ragazzo che deve salvare il suo villaggio da una maledizione?", options: ["Ni no Kuni", "Dragon Quest", "Final Fantasy", "Tales of Symphonia", "Chrono Trigger"], answer: 0 },
+								{ question: "Quale videogioco è noto per la sua modalità sandbox e la possibilità di costruire qualsiasi cosa?", options: ["Minecraft", "Terraria", "Roblox", "Fortnite", "Rust"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un gruppo di eroi che devono fermare un'invasione aliena?", options: ["XCOM", "Halo", "Mass Effect", "Gears of War", "Destiny"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in una città infestata da zombie?", options: ["Resident Evil", "Silent Hill", "The Evil Within", "Dead Rising", "Left 4 Dead"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un ragazzo che deve salvare il suo mondo da un'antica minaccia?", options: ["The Legend of Zelda", "Final Fantasy", "Dragon Quest", "Chrono Trigger", "Secret of Mana"], answer: 0 },
+								{ question: "Quale videogioco è noto per la sua modalità cooperativa e la possibilità di costruire fortificazioni?", options: ["Fortnite", "Minecraft", "Terraria", "Rust", "ARK: Survival Evolved"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in un mondo aperto post-apocalittico con macchine intelligenti?", options: ["Horizon Zero Dawn", "Fallout", "The Last of Us", "Metro Exodus", "Mad Max"], answer: 0 },
+								{ question: "Quale videogioco è ambientato in una città infestata da zombie?", options: ["Resident Evil", "Silent Hill", "The Evil Within", "Dead Rising", "Left 4 Dead"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un ragazzo che deve salvare il suo mondo da un'antica minaccia?", options: ["The Legend of Zelda", "Final Fantasy", "Dragon Quest", "Chrono Trigger", "Secret of Mana"], answer: 0 },
+								{ question: "Quale videogioco è noto per la sua modalità cooperativa e la possibilità di costruire fortificazioni?", options: ["Fortnite", "Minecraft", "Terraria", "Rust", "ARK: Survival Evolved"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un gruppo di eroi che devono fermare un'invasione demoniaca?", options: ["Diablo", "Dark Souls", "Bloodborne", "Path of Exile", "Torchlight"], answer: 0 },
+								{ question: "Quale videogioco ha come protagonista un ragazzo che deve salvare il suo regno da una maledizione?", options: ["Ni no Kuni", "Dragon Quest", "Final Fantasy", "Tales of Symphonia", "Chrono Trigger"], answer: 0 },
+								{ question: "Quale videogioco è noto per la sua modalità sandbox e la possibilità di esplorare un universo infinito?", options: ["No Man's Sky", "Minecraft", "Terraria", "Starbound", "Elite Dangerous"], answer: 0 },
+    
+            ],
+            cinema: [
+								{ question: "Chi ha vinto l'Oscar come Miglior Film nel 2023?", options: ["Everything Everywhere All at Once", "The Fabelmans", "Top Gun: Maverick", "Avatar: La via dell'acqua", "Elvis"], answer: 0 },
+								{ question: "Quale film del 1985 ha come protagonista un adolescente che viaggia nel tempo?", options: ["Ritorno al futuro", "I Goonies", "Stand by Me", "Gremlins", "The Breakfast Club"], answer: 0 },
+								{ question: "Chi ha interpretato il ruolo di Forrest Gump nel film del 1994?", options: ["Tom Hanks", "Robin Williams", "John Travolta", "Jim Carrey", "Kevin Costner"], answer: 0 },
+								{ question: "Quale film del 1999 è noto per la frase 'I see dead people'?", options: ["Il sesto senso", "Matrix", "Fight Club", "American Beauty", "The Blair Witch Project"], answer: 0 },
+								{ question: "Quale film del 2001 ha come protagonisti hobbit e un anello magico?", options: ["Il Signore degli Anelli: La Compagnia dell'Anello", "Harry Potter e la Pietra Filosofale", "Shrek", "La mummia", "Il gladiatore"], answer: 0 },
+								{ question: "Quale film del 1997 racconta la storia di un disastro marittimo?", options: ["Titanic", "La tempesta perfetta", "Master and Commander", "Poseidon", "S.O.S. Titanic"], answer: 0 },
+								{ question: "Chi ha diretto 'Pulp Fiction' nel 1994?", options: ["Quentin Tarantino", "Martin Scorsese", "Steven Spielberg", "Francis Ford Coppola", "Ridley Scott"], answer: 0 },
+								{ question: "Quale film ha vinto il Leone d'Oro al Festival di Venezia nel 2022?", options: ["The Whale", "All the Beauty and the Bloodshed", "Blonde", "Tár", "Bones and All"], answer: 1 },
+								{ question: "Chi ha diretto il film 'Dune' uscito nel 2021?", options: ["Denis Villeneuve", "Christopher Nolan", "Ridley Scott", "James Cameron", "Peter Jackson"], answer: 0 },
+								{ question: "Quale film ha vinto il premio per il Miglior Film Straniero agli Oscar 2023?", options: ["Drive My Car", "Flee", "The Worst Person in the World", "Lunana: A Yak in the Classroom", "The Hand of God"], answer: 0 },
+								{ question: "Quale film del 2003 racconta la storia di un pesce pagliaccio alla ricerca del figlio?", options: ["Alla ricerca di Nemo", "Shark Tale", "Il viaggio di Arlo", "Happy Feet", "L'era glaciale"], answer: 0 },
+								{ question: "Quale film del 1994 ha come protagonista un leone che diventa re?", options: ["Il re leone", "La bella e la bestia", "Aladdin", "Hercules", "Tarzan"], answer: 0 },
+								{ question: "Quale film del 1995 ha come protagonisti giocattoli che prendono vita?", options: ["Toy Story", "Small Soldiers", "La fabbrica di cioccolato", "Jumanji", "Zathura"], answer: 0 },
+								{ question: "Quale film del 1984 ha come protagonisti quattro scienziati che catturano fantasmi?", options: ["Ghostbusters", "Men in Black", "Beetlejuice", "Gremlins", "Poltergeist"], answer: 0 },
+								{ question: "Quale film del 1990 ha come protagonista un bambino lasciato solo a casa?", options: ["Mamma, ho perso l'aereo", "Dennis la minaccia", "Piccola peste", "Richie Rich", "Il piccolo grande mago dei videogames"], answer: 0 },
+								{ question: "Quale film del 1998 ha come protagonista un insetto che salva la colonia?", options: ["A Bug's Life - Megaminimondo", "Z la formica", "Bee Movie", "Antz", "Epic"], answer: 0 },
+								{ question: "Quale film del 1989 ha come protagonista un professore che cerca il Santo Graal?", options: ["Indiana Jones e l'ultima crociata", "Il codice Da Vinci", "Lara Croft: Tomb Raider", "National Treasure", "The Mummy"], answer: 0 },
+								{ question: "Quale film del 1996 ha come protagonista un alieno che gioca a basket?", options: ["Space Jam", "Men in Black", "Independence Day", "Mars Attacks!", "Galaxy Quest"], answer: 0 },
+								{ question: "Quale film del 1995 ha come protagonista un giocattolo cowboy che teme di essere sostituito?", options: ["Toy Story", "Small Soldiers", "La fabbrica di cioccolato", "Jumanji", "Zathura"], answer: 0 },
+								{ question: "Quale film del 1991 ha come protagonista un robot che viaggia nel tempo per proteggere un ragazzo?", options: ["Terminator 2: Il giorno del giudizio", "Ritorno al futuro", "Blade Runner", "Robocop", "The Matrix"], answer: 0 },
+								{ question: "Quale film del 1981 ha come protagonista un archeologo che cerca l'Arca dell'Alleanza?", options: ["I predatori dell'arca perduta", "Il codice Da Vinci", "Lara Croft: Tomb Raider", "National Treasure", "The Mummy"], answer: 0 },
+								// Nuove domande Cinema
+								{ question: "Quale film del 1999 ha come protagonista un programmatore che scopre la verità sulla sua realtà?", options: ["Matrix", "Fight Club", "Il sesto senso", "American Beauty", "The Blair Witch Project"], answer: 0 },
+								{ question: "Quale film del 1994 ha come protagonisti due sicari e un pugile?", options: ["Pulp Fiction", "Le Iene", "Fight Club", "The Usual Suspects", "Natural Born Killers"], answer: 0 },
+								{ question: "Quale film del 1982 ha come protagonista un alieno che vuole tornare a casa?", options: ["E.T. l'extra-terrestre", "Incontri ravvicinati del terzo tipo", "Alien", "Predator", "Star Wars"], answer: 0 },
+								{ question: "Quale film del 1993 ha come protagonisti dinosauri riportati in vita?", options: ["Jurassic Park", "King Kong", "Godzilla", "The Lost World", "Carnosaur"], answer: 0 },
+								{ question: "Quale film del 1995 ha come protagonisti giocattoli che prendono vita?", options: ["Toy Story", "Small Soldiers", "La fabbrica di cioccolato", "Jumanji", "Zathura"], answer: 0 },
+								{ question: "Quale film del 1984 ha come protagonisti quattro scienziati che catturano fantasmi?", options: ["Ghostbusters", "Men in Black", "Beetlejuice", "Gremlins", "Poltergeist"], answer: 0 },
+								{ question: "Quale film del 1990 ha come protagonista un bambino lasciato solo a casa?", options: ["Mamma, ho perso l'aereo", "Dennis la minaccia", "Piccola peste", "Richie Rich", "Il piccolo grande mago dei videogames"], answer: 0 },
+								{ question: "Quale film del 1994 ha come protagonista un detenuto che pianifica la fuga da un carcere di massima sicurezza?", options: ["Le ali della libertà", "Fuga da Alcatraz", "Il miglio verde", "Escape Plan", "Prison Break"], answer: 0 },
+								{ question: "Quale film del 1991 ha come protagonista un agente dell'FBI che cerca di catturare un serial killer?", options: ["Il silenzio degli innocenti", "Seven", "Basic Instinct", "Cape Fear", "Heat"], answer: 0 },
+								{ question: "Quale film del 1998 ha come protagonista un gruppo di operai che diventano spogliarellisti?", options: ["Full Monty - Squattrinati organizzati", "American Pie", "Trainspotting", "Lock & Stock - Pazzi scatenati", "Quattro matrimoni e un funerale"], answer: 0 },
+								{ question: "Quale film del 1997 ha come protagonista un uomo che rivive lo stesso giorno più volte?", options: ["Ricomincio da capo", "Sliding Doors", "The Truman Show", "Gattaca", "Donnie Brasco"], answer: 0 },
+								{ question: "Quale film del 1995 ha come protagonista un detective che indaga su una serie di omicidi legati ai sette peccati capitali?", options: ["Seven", "Il silenzio degli innocenti", "Heat", "L.A. Confidential", "The Usual Suspects"], answer: 0 },
+								{ question: "Quale film del 1996 ha come protagonista un avvocato che non può mentire per un giorno?", options: ["Bugiardo bugiardo", "Mrs. Doubtfire", "Ace Ventura - L'acchiappanimali", "The Mask", "Il rompiscatole"], answer: 0 },
+								{ question: "Quale film del 1999 ha come protagonista un giovane che si unisce a un club di combattimento clandestino?", options: ["Fight Club", "American Beauty", "Matrix", "The Sixth Sense", "The Blair Witch Project"], answer: 0 },
+								{ question: "Quale film del 1992 ha come protagonista un avvocato militare che difende due marines accusati di omicidio?", options: ["Codice d'onore", "Il socio", "Il cliente", "Il rapporto Pelican", "L'avvocato del diavolo"], answer: 0 },
+								{ question: "Quale film del 1998 ha come protagonista un uomo che scopre che la sua vita è un reality show?", options: ["The Truman Show", "Gattaca", "Pleasantville", "The Matrix", "The Sixth Sense"], answer: 0 },
+								{ question: "Quale film del 1994 ha come protagonista un killer professionista e una giovane ragazza?", options: ["Léon", "Pulp Fiction", "Natural Born Killers", "Heat", "The Professional"], answer: 0 },
+								{ question: "Quale film del 1992 ha come protagonista un genio che esaudisce desideri?", options: ["Aladdin", "La lampada di Aladino", "Il mago di Oz", "La spada nella roccia", "Fantasia"], answer: 0 },
+								{ question: "Quale film del 1989 ha come protagonista un professore che cerca il Santo Graal?", options: ["Indiana Jones e l'ultima crociata", "Il codice Da Vinci", "Lara Croft: Tomb Raider", "National Treasure", "The Mummy"], answer: 0 },
+								{ question: "Chi interpreta il ruolo di Doctor Strange nel MCU?", options: ["Benedict Cumberbatch", "Robert Downey Jr.", "Chris Hemsworth", "Mark Ruffalo", "Tom Holland"], answer: 0 },
+								{ question: "Quale gemma dell'infinito è contenuta nel Tesseract?", options: ["Gemma dello Spazio", "Gemma della Mente", "Gemma del Potere", "Gemma del Tempo", "Gemma dell'Anima"], answer: 0 },
+								{ question: "Quale film Marvel è ambientato principalmente nel regno di Asgard?", options: ["Thor", "Thor: The Dark World", "Thor: Ragnarok", "Avengers: Endgame", "Guardiani della Galassia"], answer: 0 },
+								{ question: "Quale film Marvel è ambientato durante la seconda guerra mondiale?", options: ["Captain America: The First Avenger", "Iron Man", "Thor", "The Incredible Hulk", "Ant-Man"], answer: 0 },
+								{ question: "Quale film del 1980 ha come protagonista un gruppo di musicisti in missione per salvare un orfanotrofio?", options: ["The Blues Brothers", "School of Rock", "Almost Famous", "This Is Spinal Tap", "A Hard Day's Night"], answer: 0 },
+								{ question: "Quale film del 1986 ha come protagonista un pilota di caccia?", options: ["Top Gun", "Pearl Harbor", "Independence Day", "Air Force One", "Behind Enemy Lines"], answer: 0 },
+								{ question: "Quale film del 1994 ha come protagonista un detenuto che pianifica la fuga da un carcere di massima sicurezza?", options: ["Le ali della libertà", "Fuga da Alcatraz", "Il miglio verde", "Escape Plan", "Prison Break"], answer: 0 }
+ 					],
+            attualita: [
+								// Domande precedenti
+								{ question: "Chi è il presidente degli Stati Uniti nel 2023?", options: ["Joe Biden", "Donald Trump", "Kamala Harris", "Barack Obama", "Hillary Clinton"], answer: 0 },
+								{ question: "Quale città ha ospitato le Olimpiadi Invernali del 2022?", options: ["Pechino", "Tokyo", "Sochi", "Vancouver", "Londra"], answer: 0 },
+								{ question: "Quale squadra ha vinto la Champions League nel 2023?", options: ["Real Madrid", "Manchester City", "Bayern Monaco", "Liverpool", "Paris Saint-Germain"], answer: 1 },
+								{ question: "Qual è la capitale dell'Australia?", options: ["Sydney", "Melbourne", "Canberra", "Brisbane", "Perth"], answer: 2 },
+								{ question: "Chi ha vinto il premio Nobel per la Pace nel 2022?", options: ["Maria Ressa", "Abiy Ahmed", "Denis Mukwege", "Malala Yousafzai", "Greta Thunberg"], answer: 0 },
+								{ question: "Qual è il fiume più lungo del mondo?", options: ["Nilo", "Amazzonia", "Yangtze", "Mississippi", "Danubio"], answer: 1 },
+								{ question: "In quale anno è caduto il Muro di Berlino?", options: ["1987", "1989", "1991", "1993", "1985"], answer: 1 },
+								{ question: "Chi ha scritto 'La Divina Commedia'?", options: ["Dante Alighieri", "Giovanni Boccaccio", "Francesco Petrarca", "Ludovico Ariosto", "Torquato Tasso"], answer: 0 },
+								{ question: "Qual è il pianeta più vicino al Sole?", options: ["Venere", "Mercurio", "Marte", "Giove", "Saturno"], answer: 1 },
+								{ question: "Quale nazione ha vinto la Coppa del Mondo FIFA nel 2018?", options: ["Germania", "Brasile", "Francia", "Argentina", "Italia"], answer: 2 },
+								{ question: "Chi ha dipinto la Gioconda?", options: ["Leonardo da Vinci", "Michelangelo", "Raffaello", "Caravaggio", "Vincent van Gogh"], answer: 0 },
+								{ question: "Qual è la lingua più parlata al mondo?", options: ["Inglese", "Cinese mandarino", "Spagnolo", "Hindi", "Arabo"], answer: 1 },
+								{ question: "Qual è la capitale del Giappone?", options: ["Kyoto", "Osaka", "Tokyo", "Nagoya", "Hiroshima"], answer: 2 },
+								{ question: "Chi ha scoperto la penicillina?", options: ["Alexander Fleming", "Marie Curie", "Louis Pasteur", "Gregor Mendel", "Isaac Newton"], answer: 0 },
+								{ question: "Qual è il monte più alto del mondo?", options: ["K2", "Kangchenjunga", "Everest", "Makalu", "Lhotse"], answer: 2 },
+								{ question: "Quale evento sportivo si è tenuto a Tokyo nel 2021?", options: ["Olimpiadi", "Coppa del Mondo FIFA", "Campionati Mondiali di Atletica", "Giochi del Commonwealth", "Giochi Asiatici"], answer: 0 },
+								{ question: "Chi è il CEO di Tesla nel 2023?", options: ["Elon Musk", "Jeff Bezos", "Tim Cook", "Bill Gates", "Mark Zuckerberg"], answer: 0 },
+								{ question: "Qual è la valuta ufficiale del Giappone?", options: ["Yen", "Won", "Renminbi", "Baht", "Ringgit"], answer: 0 },
+								{ question: "Quale paese è noto per il carnevale di Rio?", options: ["Argentina", "Brasile", "Cile", "Colombia", "Perù"], answer: 1 },
+								{ question: "Chi ha scritto '1984'?", options: ["George Orwell", "Aldous Huxley", "Ray Bradbury", "Jules Verne", "H.G. Wells"], answer: 0 },
+								{ question: "Qual è il più grande oceano del mondo?", options: ["Oceano Atlantico", "Oceano Indiano", "Oceano Pacifico", "Oceano Artico", "Oceano Antartico"], answer: 2 },
+								{ question: "Quale animale è noto per essere il più veloce sulla terra?", options: ["Ghepardo", "Leone", "Cavallo", "Leopardo", "Antilope"], answer: 0 },
+								{ question: "Chi è il fondatore di Microsoft?", options: ["Steve Jobs", "Bill Gates", "Larry Page", "Sergey Brin", "Elon Musk"], answer: 1 },
+								{ question: "Quale pianeta è noto come il Pianeta Rosso?", options: ["Marte", "Giove", "Saturno", "Venere", "Mercurio"], answer: 0 },
+								{ question: "Qual è il simbolo chimico dell'oro?", options: ["Au", "Ag", "Pb", "Fe", "Cu"], answer: 0 },
+								{ question: "Quale nazione ha ospitato la Coppa del Mondo FIFA nel 2022?", options: ["Qatar", "Russia", "Brasile", "Sudafrica", "Germania"], answer: 0 },
+								{ question: "Chi ha vinto il premio Nobel per la Letteratura nel 2022?", options: ["Annie Ernaux", "Kazuo Ishiguro", "Olga Tokarczuk", "Haruki Murakami", "Margaret Atwood"], answer: 0 },
+								{ question: "Quale azienda tecnologica ha lanciato il primo smartphone pieghevole?", options: ["Samsung", "Apple", "Huawei", "Xiaomi", "Oppo"], answer: 0 },
+								{ question: "Qual è il nome del rover della NASA che ha esplorato Marte nel 2021?", options: ["Curiosity", "Perseverance", "Spirit", "Opportunity", "Sojourner"], answer: 1 },
+								// Nuove domande Attualità
+								{ question: "Quale paese ha recentemente lasciato l'Unione Europea?", options: ["Regno Unito", "Francia", "Italia", "Spagna", "Germania"], answer: 0 },
+								{ question: "Chi è stato eletto presidente della Francia nel 2022?", options: ["Emmanuel Macron", "Marine Le Pen", "Jean-Luc Mélenchon", "François Hollande", "Nicolas Sarkozy"], answer: 0 },
+								{ question: "Quale azienda ha acquistato la piattaforma di social media Twitter nel 2022?", options: ["Nessuna delle precedenti", "Meta", "Tesla", "Google", "Amazon"], answer: 0 },
+								{ question: "Qual è il nome del vaccino COVID-19 sviluppato da Pfizer?", options: ["Comirnaty", "Spikevax", "Vaxzevria", "Covaxin", "Sinovac"], answer: 0 },
+								{ question: "Quale film ha vinto l'Oscar per la Miglior Regia nel 2023?", options: ["Daniel Kwan e Daniel Scheinert", "Steven Spielberg", "Martin McDonagh", "James Cameron", "Quentin Tarantino"], answer: 0 },
+								{ question: "Quale attrice ha vinto l'Oscar come Miglior Attrice nel 2023?", options: ["Michelle Yeoh", "Cate Blanchett", "Ana de Armas", "Viola Davis", "Jessica Chastain"], answer: 0 },
+								{ question: "Quale film ha vinto il Leone d'Oro al Festival di Venezia nel 2022?", options: ["All the Beauty and the Bloodshed", "The Whale", "Blonde", "Tár", "Bones and All"], answer: 0 },
+								{ question: "Chi ha diretto il film 'Dune' uscito nel 2021?", options: ["Denis Villeneuve", "Christopher Nolan", "Ridley Scott", "James Cameron", "Peter Jackson"], answer: 0 },
+								{ question: "Quale paese ha ospitato la COP26 nel 2021?", options: ["Regno Unito", "Francia", "Germania", "Italia", "Spagna"], answer: 0 },
+								{ question: "Quale nazione ha lanciato la missione spaziale Tianwen-1 su Marte?", options: ["Cina", "Stati Uniti", "Russia", "India", "Giappone"], answer: 0 },
+								{ question: "Chi è il primo ministro del Regno Unito nel 2023?", options: ["Rishi Sunak", "Boris Johnson", "Liz Truss", "Theresa May", "David Cameron"], answer: 0 },
+								{ question: "Quale paese ha vinto il maggior numero di medaglie alle Olimpiadi di Tokyo 2020?", options: ["Stati Uniti", "Cina", "Giappone", "Russia", "Gran Bretagna"], answer: 0 },
+								{ question: "Quale azienda ha lanciato il primo volo spaziale commerciale con equipaggio nel 2021?", options: ["SpaceX", "Blue Origin", "Virgin Galactic", "NASA", "Roscosmos"], answer: 0 },
+								{ question: "Quale paese ha recentemente legalizzato il matrimonio tra persone dello stesso sesso nel 2021?", options: ["Svizzera", "Italia", "Grecia", "Polonia", "Ungheria"], answer: 0 },
+								{ question: "Chi è stato eletto cancelliere della Germania nel 2021?", options: ["Olaf Scholz", "Angela Merkel", "Annalena Baerbock", "Armin Laschet", "Christian Lindner"], answer: 0 },
+								{ question: "Quale paese ha ospitato l'Expo 2020?", options: ["Emirati Arabi Uniti", "Qatar", "Arabia Saudita", "Kuwait", "Oman"], answer: 0 },
+								{ question: "Quale paese ha vinto l'Eurovision Song Contest nel 2021?", options: ["Italia", "Francia", "Svizzera", "Islanda", "Ucraina"], answer: 0 },
+								{ question: "Chi è stato eletto presidente del Brasile nel 2022?", options: ["Luiz Inácio Lula da Silva", "Jair Bolsonaro", "Dilma Rousseff", "Fernando Haddad", "Ciro Gomes"], answer: 0 },
+								{ question: "Quale paese ha recentemente abolito la pena di morte nel 2021?", options: ["Sierra Leone", "Giappone", "India", "Brasile", "Messico"], answer: 0 },
+								{ question: "Quale paese ha lanciato il razzo spaziale Artemis I?", options: ["Stati Uniti", "Cina", "Russia", "India", "Giappone"], answer: 0 },
+								{ question: "Chi è stato eletto presidente della Colombia nel 2022?", options: ["Gustavo Petro", "Iván Duque", "Álvaro Uribe", "Juan Manuel Santos", "Sergio Fajardo"], answer: 0 },
+								{ question: "Quale paese ha recentemente approvato una legge per ridurre le emissioni di carbonio del 55% entro il 2030?", options: ["Unione Europea", "Stati Uniti", "Cina", "India", "Brasile"], answer: 0 },
+								{ question: "Quale paese ha recentemente dichiarato l'emergenza climatica nel 2021?", options: ["Nuova Zelanda", "Australia", "Canada", "Regno Unito", "Francia"], answer: 0 },
+								{ question: "Chi è stato eletto presidente della Corea del Sud nel 2022?", options: ["Yoon Suk-yeol", "Moon Jae-in", "Park Geun-hye", "Lee Jae-myung", "Ban Ki-moon"], answer: 0 },
+								{ question: "Quale paese ha recentemente legalizzato l'eutanasia nel 2021?", options: ["Spagna", "Portogallo", "Italia", "Francia", "Germania"], answer: 0 },
+								{ question: "Quale paese ha recentemente approvato una legge per vietare la plastica monouso entro il 2025?", options: ["Canada", "Stati Uniti", "Australia", "Regno Unito", "Francia"], answer: 0 },
+								{ question: "Quale paese ha recentemente lanciato una missione per esplorare la Luna nel 2021?", options: ["Cina", "India", "Russia", "Giappone", "Stati Uniti"], answer: 0 },
+								{ question: "Chi è stato eletto presidente del Messico nel 2022?", options: ["Andrés Manuel López Obrador", "Ricardo Anaya", "Enrique Peña Nieto", "Felipe Calderón", "Josefina Vázquez Mota"], answer: 0 },
+								{ question: "Quale paese ha recentemente approvato una legge per aumentare il salario minimo a 15 dollari l'ora entro il 2025?", options: ["Stati Uniti", "Canada", "Regno Unito", "Australia", "Nuova Zelanda"], answer: 0 }
+
+            ],
+            logica: [
+								{ question: "Se un treno elettrico viaggia verso nord a 100 km/h e il vento soffia da sud a 10 km/h, in che direzione va il fumo?", options: ["Nord", "Sud", "Est", "Ovest", "Nessuna delle precedenti"], answer: 4 },
+								{ question: "Quale numero viene dopo 1, 4, 9, 16?", options: ["20", "25", "30", "36", "49"], answer: 1 },
+								{ question: "Un uomo ha 4 figlie, ognuna delle quali ha un fratello. Quanti figli ha l'uomo in totale?", options: ["4", "5", "6", "8", "10"], answer: 1 },
+								{ question: "Se hai due monete che sommano a 30 centesimi e una non è un nichelino, quali sono le monete?", options: ["Un quarto e un nichelino", "Due dimes", "Tre nichelini", "Un quarto e un penny", "Due penny"], answer: 0 },
+								{ question: "Quale parola è scritta incorrettamente in ogni dizionario?", options: ["Incorrettamente", "Correttamente", "Dizionario", "Parola", "Scritta"], answer: 0 },
+								{ question: "Se un gallo depone un uovo sul tetto di una casa, da che parte cadrà l'uovo?", options: ["Destra", "Sinistra", "Nord", "Sud", "Nessuna delle precedenti"], answer: 4 },
+								{ question: "Se ci vogliono 5 macchine per fare 5 oggetti in 5 minuti, quanto tempo ci vorrà a 100 macchine per fare 100 oggetti?", options: ["5 minuti", "10 minuti", "100 minuti", "50 minuti", "20 minuti"], answer: 0 },
+								{ question: "Qual è il numero mancante nella sequenza: 2, 3, 5, 9, 17, ...?", options: ["33", "31", "34", "35", "30"], answer: 1 },
+								{ question: "Se un autobus ha 7 bambini e ogni bambino ha 7 zaini, e in ogni zaino ci sono 7 gatti, quanti piedi ci sono sull'autobus?", options: ["14", "98", "196", "392", "0"], answer: 0 },
+								{ question: "Quale numero viene dopo 2, 6, 12, 20?", options: ["28", "30", "32", "36", "40"], answer: 0 },
+								{ question: "Se un giorno ieri era domani, che giorno è oggi?", options: ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"], answer: 2 },
+								{ question: "Qual è il prossimo numero nella sequenza: 1, 1, 2, 3, 5, 8, ...?", options: ["11", "12", "13", "14", "21"], answer: 2 },
+								{ question: "Se un albero cade in una foresta e nessuno è lì per sentirlo, fa rumore?", options: ["Sì", "No", "Forse", "Dipende", "Nessuna delle precedenti"], answer: 4 },
+								{ question: "Qual è il numero mancante nella sequenza: 1, 4, 8, 13, ...?", options: ["18", "19", "20", "21", "22"], answer: 1 },
+								{ question: "Se una dozzina di uova costa 12 centesimi, quanto costa un uovo?", options: ["1 centesimo", "2 centesimi", "3 centesimi", "4 centesimi", "5 centesimi"], answer: 0 },
+								{ question: "Quale numero viene dopo 5, 10, 20, 40?", options: ["60", "70", "80", "90", "100"], answer: 2 },
+								{ question: "Se un uomo corre a 10 km/h e il suo cane corre a 15 km/h, quanto tempo ci vorrà al cane per superare l'uomo se partono insieme?", options: ["Mai", "1 ora", "2 ore", "30 minuti", "10 minuti"], answer: 0 },
+								{ question: "Qual è il prossimo numero nella sequenza: 3, 6, 12, 24, ...?", options: ["36", "48", "60", "72", "96"], answer: 1 },
+								{ question: "Se un bicchiere è mezzo pieno, quanto è vuoto?", options: ["Mezzo vuoto", "Completamente vuoto", "Un quarto vuoto", "Tre quarti vuoto", "Pieno"], answer: 0 },
+								{ question: "Qual è il numero mancante nella sequenza: 10, 20, 30, ...?", options: ["40", "50", "60", "70", "80"], answer: 0 },
+								{ question: "Se un treno parte da A alle 10:00 e arriva a B alle 14:00, quanto tempo ci ha messo?", options: ["4 ore", "5 ore", "6 ore", "3 ore", "2 ore"], answer: 0 },
+								{ question: "Qual è il prossimo numero nella sequenza: 7, 14, 28, 56, ...?", options: ["84", "112", "140", "168", "196"], answer: 1 },
+								{ question: "Se un orologio segna le 3:15, qual è l'angolo tra le lancette?", options: ["7.5 gradi", "15 gradi", "30 gradi", "45 gradi", "90 gradi"], answer: 0 },
+								{ question: "Qual è il numero mancante nella sequenza: 9, 18, 27, ...?", options: ["36", "45", "54", "63", "72"], answer: 0 },
+								{ question: "Se un uomo ha 10 mele e ne dà via 3, quante mele gli rimangono?", options: ["7", "6", "5", "4", "3"], answer: 0 },
+								{ question: "Qual è il prossimo numero nella sequenza: 11, 22, 44, 88, ...?", options: ["132", "176", "220", "264", "308"], answer: 1 },
+								{ question: "Se un uccello vola a 20 km/h e un aereo a 600 km/h, quanto tempo ci vorrà all'aereo per superare l'uccello?", options: ["Mai", "1 minuto", "2 minuti", "3 minuti", "4 minuti"], answer: 0 },
+								{ question: "Qual è il numero mancante nella sequenza: 15, 30, 45, ...?", options: ["60", "75", "90", "105", "120"], answer: 0 },
+								{ question: "Se un albero impiega 10 anni per crescere fino a 10 metri, quanto tempo impiegherà per crescere fino a 20 metri?", options: ["10 anni", "20 anni", "30 anni", "40 anni", "Non può essere determinato"], answer: 4 },
+								{ question: "Qual è il prossimo numero nella sequenza: 1, 1, 2, 6, 24, ...?", options: ["120", "48", "36", "12", "60"], answer: 0 },
+								{ question: "Se un bicchiere è riempito fino a metà con acqua e poi riempito completamente con olio, quanto è pieno il bicchiere?", options: ["Pieno", "Mezzo pieno", "Tre quarti pieno", "Un quarto pieno", "Vuoto"], answer: 0 },
+								{ question: "Qual è il prossimo numero nella sequenza: 5, 10, 20, 40, ...?", options: ["60", "70", "80", "90", "100"], answer: 2 },
+								{ question: "Se un uomo ha 3 gatti e ogni gatto ha 3 gattini, quanti gatti ci sono in totale?", options: ["3", "6", "9", "12", "15"], answer: 3 },
+								{ question: "Qual è il prossimo numero nella sequenza: 4, 9, 16, 25, ...?", options: ["36", "49", "64", "81", "100"], answer: 0 },
+								{ question: "Se un treno parte da A alle 9:00 e arriva a B alle 12:00, quanto tempo ci ha messo?", options: ["3 ore", "4 ore", "5 ore", "6 ore", "7 ore"], answer: 0 },
+								{ question: "Qual è il prossimo numero nella sequenza: 8, 16, 32, 64, ...?", options: ["96", "128", "160", "192", "224"], answer: 1 },
+								{ question: "Se un orologio segna le 4:20, qual è l'angolo tra le lancette?", options: ["10 gradi", "20 gradi", "30 gradi", "40 gradi", "50 gradi"], answer: 2 },
+								{ question: "Qual è il numero mancante nella sequenza: 3, 6, 9, ...?", options: ["12", "15", "18", "21", "24"], answer: 0 },
+								{ question: "Se un uomo ha 8 mele e ne mangia 2, quante mele gli rimangono?", options: ["6", "5", "4", "3", "2"], answer: 0 },
+								{ question: "Qual è il prossimo numero nella sequenza: 7, 14, 21, 28, ...?", options: ["35", "42", "49", "56", "63"], answer: 0 },
+								{ question: "Se un uccello vola a 30 km/h e un aereo a 900 km/h, quanto tempo ci vorrà all'aereo per superare l'uccello?", options: ["Mai", "1 minuto", "2 minuti", "3 minuti", "4 minuti"], answer: 0 },
+								{ question: "Qual è il numero mancante nella sequenza: 12, 24, 36, ...?", options: ["48", "60", "72", "84", "96"], answer: 0 },
+								{ question: "Se un uomo ha 6 cani e ogni cane ha 4 zampe, quante zampe ci sono in totale?", options: ["24", "20", "16", "12", "8"], answer: 0 },
+								{ question: "Se un uomo ha 5 cani e ogni cane ha 4 zampe, quante zampe ci sono in totale?", options: ["20", "18", "16", "14", "12"], answer: 0 },
+								{ question: "Qual è il prossimo numero nella sequenza: 13, 26, 52, 104, ...?", options: ["156", "208", "260", "312", "364"], answer: 1 }
+]
+            
+        };
+
+        let timerStarted = false;
+        let timeRemaining = 20 * 60; // 20 minuti in secondi
+        let currentCategory = null;
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const scoresByCategory = {
+            serieTV: 0,
+            musica: 0,
+            videogiochi: 0,
+            cinema: 0,
+            attualita: 0,
+            logica: 0
+        };
+        const userAnswers = [];
+        let timerInterval;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+
+        function freezeQuiz() {
+            document.getElementById('quiz').style.display = 'none';
+            document.querySelectorAll('.btn').forEach(btn => btn.style.display = 'none');
+            document.getElementById('result').textContent = "Tempo scaduto! Il quiz è stato congelato.";
+        }
+
+
+
+
+function startTimer(display) {
+    timerInterval = setInterval(() => {
+        const minutes = parseInt(timeRemaining / 60, 10);
+        const seconds = parseInt(timeRemaining % 60, 10);
+
+        display.textContent = `Tempo rimanente: ${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+
+        if (--timeRemaining < 0) {
+            clearInterval(timerInterval);
+            freezeQuiz();
+        }
+    }, 1000);
+}
+
+function selectCategory(category) {
+    if (currentCategory !== null || document.querySelector(`.category[onclick="selectCategory('${category}')"]`).classList.contains('disabled')) return;
+    currentCategory = category;
+    questions = shuffle(categories[category]).slice(0, 15); // Seleziona 20 domande casuali
+    document.getElementById('category-selection').style.display = 'none';
+    document.getElementById('quiz').style.display = 'block';
+    document.querySelectorAll('.btn').forEach(btn => btn.style.display = 'inline-block');
+    loadQuestion();
+    document.getElementById('incorrect-questions').innerHTML = ''; // Reset domande errate
+
+    // Avvia il timer solo la prima volta che viene selezionata una categoria
+    if (!timerStarted) {
+        startTimer(document.getElementById('timer'));
+        timerStarted = true;
+    }
+}
+
+        function loadQuestion() {
+            const quizDiv = document.getElementById('quiz');
+            const question = questions[currentQuestionIndex];
+            const shuffledOptions = shuffle([...question.options]);
+            const correctAnswerIndex = shuffledOptions.indexOf(question.options[question.answer]);
+            quizDiv.innerHTML = `
+                <h3>${question.question}</h3>
+                <ul class="options">
+                    ${shuffledOptions.map((option, index) => `
+                        <li>
+                            <input type="radio" name="q${currentQuestionIndex}" value="${index}" ${userAnswers[currentQuestionIndex] === index ? 'checked' : ''}> 
+                            ${option}
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+            questions[currentQuestionIndex].answer = correctAnswerIndex; // Aggiorna l'indice della risposta corretta
+        }
+
+        function nextQuestion() {
+            const selectedOption = document.querySelector(`input[name="q${currentQuestionIndex}"]:checked`);
+            if (selectedOption) {
+                userAnswers[currentQuestionIndex] = parseInt(selectedOption.value);
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) {
+                    loadQuestion();
+                } else {
+                    showResult();
+                }
+            } else {
+                alert("Per favore, seleziona una risposta.");
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function showResult() {
+            const categoryScore = userAnswers.reduce((total, answer, index) => {
+                return total + (answer === questions[index].answer ? 1 : 0);
+            }, 0);
+            score += categoryScore;
+            scoresByCategory[currentCategory] += categoryScore;
+
+            const resultDiv = document.getElementById('result');
+            let scoreDetails = `Punteggio totale: ${score}<br>`;
+            for (const [category, catScore] of Object.entries(scoresByCategory)) {
+            	if(catScore !== 0) {
+                scoreDetails += `Punteggio per la categoria "${category}": ${catScore}<br>`;            		
+            	}
+            }
+            resultDiv.innerHTML = scoreDetails;
+
+            const incorrectQuestionsDiv = document.getElementById('incorrect-questions');
+            const incorrectQuestions = questions.map((question, index) => {
+                if (userAnswers[index] !== question.answer) {
+                    return `<li>${question.question}<br>Risposta corretta: ${question.options[question.answer]}</li>`;
+                }
+                return null;
+            }).filter(item => item !== null);
+
+            if (incorrectQuestions.length > 0) {
+                incorrectQuestionsDiv.innerHTML = `<h3>Domande errate:</h3><ul>${incorrectQuestions.join('')}</ul>`;
+            } else {
+                incorrectQuestionsDiv.innerHTML = "<h3>Hai risposto correttamente a tutte le domande!</h3>";
+            }
+
+            document.querySelectorAll('.btn').forEach(btn => btn.style.display = 'none');
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('category-selection').style.display = 'block';
+            document.querySelector(`.category[onclick="selectCategory('${currentCategory}')"]`).classList.add('disabled');
+            currentCategory = null;
+            currentQuestionIndex = 0;
+            userAnswers.length = 0;
+        }
+    </script>
+</body>
+</html>
